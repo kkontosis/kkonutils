@@ -8,7 +8,7 @@ var installedModules;
 async function plan() {
   await rune.call({silent: true}, 'mv', './package-backup.json', './package.json');
 
-  const pj = require('./package.json');
+  const pj = JSON.parse(fs.readFileSync('./package.json').toString('utf-8'));
 
   installedModules = fs.readdirSync('/usr/local/lib/node_modules');
 
