@@ -1,9 +1,9 @@
 #! /usr/bin/env node
 
 // Run npm install (only Linux or Mac currently) while linking globally installed modules and without bugging
-
 const fs = require('fs');
 var installedModules;
+var newModules = [];
 
 async function plan() {
   await rune.call({silent: true}, 'mv', './package-backup.json', './package.json');
@@ -14,7 +14,7 @@ async function plan() {
 
   var pre = cloneDeep(pj);
 
-  await rune('mkdir', './node_modules');
+  await rune.call({silent: true}, 'mkdir', './node_modules');
 
   for (var mod in pj.dependencies) await fix(pj.dependencies, mod);
   for (var mod in pj.devDependencies) await fix(pj.devDependencies, mod);
@@ -24,6 +24,7 @@ async function plan() {
 
   await rune('npm', 'i');
   await rune('mv', './package-backup.json', './package.json');
+  await fixFinal();
 
 }
 
@@ -37,6 +38,13 @@ async function fix(object, item) {
     delete object[item];
 
     await rune('rm', '-rf', './node_modules/' + item);
+    newModules.push(item);
+  }
+}
+
+async function fixFinal() {
+  for (var item of newModules) {
+    console.log('nipmins: linking ' + item);
     await rune('ln', '-s', '/usr/local/lib/node_modules/' + item, 'node_modules/');
   }
 }
